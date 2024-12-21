@@ -4,6 +4,10 @@ const board = (function createBoard() { // IIEF for board
   // the idea is that the players symbol is used to add to the squares. This makes it more modular
   const addSymbol = function (r, c, player) { 
     //  0 <= x,y <= 2
+    if (grid[r][c] != null) {
+      console.log("something already here");
+      return;
+    }
     grid[r][c] = player.symbol;
   };
 
@@ -42,3 +46,30 @@ function createPlayer(symbol) {
   return { symbol, wins };
 }
 
+const game = (function() { // this will manage the turns and which player is going
+  const player1 = createPlayer("X");
+  const player2 = createPlayer("O");
+  let turns = 0;
+  let winningCoords = null;  // supposed to change to true after someone wins
+  let currentPlayer = player1;
+
+  const putDownOn = function (r, c) {
+    board.addSymbol(r, c, currentPlayer);
+    winningCoords = board.findWinFor(currentPlayer);
+    if (winningCoords) {
+      console.log(`${currentPlayer.symbol} wins!`);
+    }
+
+    currentPlayer = currentPlayer == player1 ? player2 : player1;
+    turns++;
+  };
+  return { putDownOn }
+})();
+
+game.putDownOn(1,1);
+game.putDownOn(2,1);
+game.putDownOn(0,0);
+game.putDownOn(2,0);
+game.putDownOn(2,2);
+
+console.log(board.grid);
