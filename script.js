@@ -72,21 +72,46 @@ const game = (function() { // this will manage the turns and which player is goi
   const takeTurnOn = function (r, c) {
     if (turns >= 8 || winningCoords) { console.log("game is over")};
     putDownOn(r, c, currentPlayer);
+    game_display.displayOnSquare([r, c], currentPlayer);
     checkForWinOrTie();
-    console.log(turns)
     currentPlayer = currentPlayer == player1 ? player2 : player1; // switching players
     turns++;
   }
   return { takeTurnOn }
 })();
 
-game.takeTurnOn(0,0);
-game.takeTurnOn(0,1);
-game.takeTurnOn(0,2);
-game.takeTurnOn(1,0);
-game.takeTurnOn(2,1);
-game.takeTurnOn(2,0);
-game.takeTurnOn(1,1);
-game.takeTurnOn(2,2);
-game.takeTurnOn(1,2);
-console.log(board.grid);
+// Pass game into here so we can connect the display to the bts of the game
+const game_display = (function () {
+  // All initialization stuff
+  const coordToSquare = new Map();
+
+  const DOMGrid = document.querySelector(".game-grid"); 
+  for (i = 0; i < 3; i++){
+    for (j = 0; j < 3; j++){
+      // Make the square node
+      let square = document.createElement("div");
+      square.classList.add("game-square");
+      square.setAttribute("row", i);
+      square.setAttribute("column", j);
+      // The idea is when the square is clicked it calls take turn from the game class, 
+      // To the coordinate the squares have their own attributes we can grab from
+      // however this can only happens once
+      square.addEventListener("click", () => {
+        console.log(square.getAttribute("row"), square.getAttribute("column"));
+        game.takeTurnOn(square.getAttribute("row"), square.getAttribute("column"));
+      }, {once: true});
+
+      // Add it to the appropriate data structures
+      coordToSquare.set([i, j].toString(), square);
+      DOMGrid.appendChild(square);
+    }
+  }
+
+  const displayOnSquare = function(coord, player) {
+    let square = coordToSquare.get(coord.toString());
+    square.textContent = player.symbol;
+  };
+
+    return { displayOnSquare };
+})();
+
