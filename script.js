@@ -51,6 +51,7 @@ const game = (function() { // this will manage the turns and which player is goi
   const player1 = createPlayer("X");
   const player2 = createPlayer("O");
   let turns = 0;
+  let phase = 'inProgress';
   let winningCoords = null;  // supposed to change to true after someone wins
   let currentPlayer = player1;
 
@@ -61,23 +62,31 @@ const game = (function() { // this will manage the turns and which player is goi
   const checkForWinOrTie = function() {
       winningCoords = board.findWinFor(currentPlayer);
       if (winningCoords) {
-      console.log(`${currentPlayer.symbol} wins!`);
+        console.log(`${currentPlayer.symbol} wins!`);
+        phase = `${currentPlayer.symbol} wins!`
       }
 
       if ((!winningCoords) && turns == 8){
-        console.log("The game is a draw");
+        phase = 'draw'
       }
   }
 
+  const getCurrentPlayer = function() {
+    return currentPlayer;
+  }
+
   const takeTurnOn = function (r, c) {
-    if (turns >= 8 || winningCoords) { console.log("game is over")};
+    if (turns >= 8 || winningCoords) { console.log("game is over")}; 
     putDownOn(r, c, currentPlayer);
-    game_display.displayOnSquare([r, c], currentPlayer);
     checkForWinOrTie();
     currentPlayer = currentPlayer == player1 ? player2 : player1; // switching players
     turns++;
   }
-  return { takeTurnOn }
+
+  const inPhase = function () {
+    return phase;
+  }
+  return { takeTurnOn, getCurrentPlayer, inPhase }
 })();
 
 // Pass game into here so we can connect the display to the bts of the game
@@ -85,6 +94,12 @@ const game_display = (function () {
   // All initialization stuff
   const coordToSquare = new Map();
 
+  
+  const displayOnSquare = function(coord, player) {
+    let square = coordToSquare.get(coord.toString());
+    square.textContent = player.symbol;
+  };
+  
   const DOMGrid = document.querySelector(".game-grid"); 
   for (i = 0; i < 3; i++){
     for (j = 0; j < 3; j++){
@@ -97,8 +112,13 @@ const game_display = (function () {
       // To the coordinate the squares have their own attributes we can grab from
       // however this can only happens once
       square.addEventListener("click", () => {
-        console.log(square.getAttribute("row"), square.getAttribute("column"));
-        game.takeTurnOn(square.getAttribute("row"), square.getAttribute("column"));
+
+        let row = square.getAttribute("row");
+        let column = square.getAttribute("column");
+        if (game.inPhase() == 'inProgress' ) {
+          displayOnSquare([row, column], game.getCurrentPlayer());
+          game.takeTurnOn(row, column);
+        }
       }, {once: true});
 
       // Add it to the appropriate data structures
@@ -106,12 +126,6 @@ const game_display = (function () {
       DOMGrid.appendChild(square);
     }
   }
-
-  const displayOnSquare = function(coord, player) {
-    let square = coordToSquare.get(coord.toString());
-    square.textContent = player.symbol;
-  };
-
     return { displayOnSquare };
 })();
 
