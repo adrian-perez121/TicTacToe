@@ -5,7 +5,6 @@ const board = (function createBoard() { // IIEF for board
   const addSymbol = function (r, c, player) { 
     //  0 <= x,y <= 2
     if (grid[r][c] != null) {
-      console.log("something already here");
       return;
     }
     grid[r][c] = player.symbol;
@@ -46,8 +45,9 @@ const board = (function createBoard() { // IIEF for board
 })();
 
 function createPlayer(symbol) {
+  let name = symbol // by default the name of the player is the symbol
   let wins = 0;
-  return { symbol, wins };
+  return { symbol, wins, name };
 }
 
 // game will switch the turns automatically
@@ -55,6 +55,7 @@ const game = (function() { // this will manage the turns and which player is goi
   const player1 = createPlayer("X");
   const player2 = createPlayer("O");
   let turns = 0;
+  let winner = null;
   let phase = 'inProgress';
   let winningCoords = null;  // supposed to change to true after someone wins
   let currentPlayer = player1;
@@ -66,8 +67,9 @@ const game = (function() { // this will manage the turns and which player is goi
   const checkForWinOrTie = function() {
       winningCoords = board.findWinFor(currentPlayer);
       if (winningCoords) {
-        console.log(`${currentPlayer.symbol} wins!`);
-        phase = `${currentPlayer.symbol} wins!`
+        currentPlayer.wins++;
+        winner = currentPlayer;
+        phase = `win`
       }
 
       if ((!winningCoords) && turns == 8){
@@ -83,6 +85,7 @@ const game = (function() { // this will manage the turns and which player is goi
     if (turns >= 8 || winningCoords) { console.log("game is over")}; 
     putDownOn(r, c, currentPlayer);
     checkForWinOrTie();
+
     currentPlayer = currentPlayer == player1 ? player2 : player1; // switching players
     turns++;
   }
@@ -91,13 +94,36 @@ const game = (function() { // this will manage the turns and which player is goi
     return phase;
   }
 
-  const resetGame  = function () {
+  const resetGame = function () {
     turns = 0;
     phase = 'inProgress';
     winningCoords = null;  // supposed to change to true after someone wins
     currentPlayer = player1;
   };
-  return { takeTurnOn, getCurrentPlayer, inPhase, resetGame }
+
+  const getPlayer1 = function() { return player1 };
+  const getPlayer2 = function() { return player2 };
+  const getWinner = function() { return winner };
+
+  return { takeTurnOn, getCurrentPlayer, inPhase, resetGame, getPlayer1, getPlayer2, getWinner }
+})();
+
+// A controller for controller for the player names, wins and messages
+const gameInfoController = (function () {
+  const player1NameBox = document.querySelector(".player1-info");
+  const player2NameBox = document.querySelector(".player2-info");
+  const messageBox = document.querySelector(".game-message");
+
+  const updateBothPlayers = function(player1, player2) {
+    player2NameBox.textContent = `${player2.wins} - ${player2.name}`
+    player1NameBox.textContent = `${player1.name} - ${player1.wins}`;
+   }
+
+  const setMessage = function(message) {
+    messageBox.textContent = message;
+  }
+
+  return { updateBothPlayers, setMessage };
 })();
 
 // Pass game into here so we can connect the display to the bts of the game
@@ -131,6 +157,15 @@ const game_display = (function () {
           if (game.inPhase() == 'inProgress' ) {
             displayOnSquare([row, column], game.getCurrentPlayer());
             game.takeTurnOn(row, column);
+            console.log(game.inPhase());
+
+            // If the game ends after this turn update the displays
+            if (game.inPhase() == 'win') {
+              gameInfoController.setMessage(`${game.getWinner().name} is the winner!`)
+              gameInfoController.updateBothPlayers(game.getPlayer1(), game.getPlayer2());
+            } else if (game.inPhase() == 'draw') {
+              gameInfoController.setMessage("This game is a draw, no one wins.")
+            }
           }
         }, {once: true});
   
@@ -139,6 +174,9 @@ const game_display = (function () {
         DOMGrid.appendChild(square);
       }
     }
+
+    // Setting up the stats
+    gameInfoController.updateBothPlayers(game.getPlayer1(), game.getPlayer2());
   }
 
   createDisplay();
@@ -156,5 +194,6 @@ resetButton.addEventListener("click", ()=>{
   game_display.resetDisplay();
   board.resetGrid();
   game.resetGame();
+  gameInfoController.setMessage(""); 
   
 })
