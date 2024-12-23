@@ -1,8 +1,8 @@
 const board = (function createBoard() { // IIEF for board
-  const grid = (new Array(3)).fill(null).map( () => {return (new Array(3)).fill(null)}); // An array to store symbols
-  
+  const grid = (new Array(3)).fill(null).map(() => { return (new Array(3)).fill(null) }); // An array to store symbols
+
   // the idea is that the players symbol is used to add to the squares. This makes it more modular
-  const addSymbol = function (r, c, player) { 
+  const addSymbol = function (r, c, player) {
     //  0 <= x,y <= 2
     if (grid[r][c] != null) {
       return;
@@ -16,24 +16,24 @@ const board = (function createBoard() { // IIEF for board
     for (i = 0; i < 3; i++) {
       let winningRow = []
       for (j = 0; j < 3; j++) {
-        if (grid[i][j] == player.symbol) { winningRow.push( [i, j] )};
+        if (grid[i][j] == player.symbol) { winningRow.push([i, j]) };
       }
-      if (winningRow.length == 3) {return winningRow};
+      if (winningRow.length == 3) { return winningRow };
     }
 
     // check columns
     for (i = 0; i < 3; i++) {
       let winningCol = []
       for (j = 0; j < 3; j++) {
-        if (grid[j][i] == player.symbol) { winningCol.push( [i, j] )};
+        if (grid[j][i] == player.symbol) { winningCol.push([i, j]) };
       }
-      if (winningCol.length == 3) {return winningCol};
+      if (winningCol.length == 3) { return winningCol };
     }
 
     // check diagonal
-    if ([[0,0], [1,1], [2,2]].every((coord) => {return grid[coord[0]][coord[1]] == player.symbol})) { return [[0,0], [1, 1], [2, 2]] };
-    if ([[0,2], [1,1], [2,0]].every((coord) => {return grid[coord[0]][coord[1]] == player.symbol})) { return [[0,2], [1,1], [2,0]] };
-    
+    if ([[0, 0], [1, 1], [2, 2]].every((coord) => { return grid[coord[0]][coord[1]] == player.symbol })) { return [[0, 0], [1, 1], [2, 2]] };
+    if ([[0, 2], [1, 1], [2, 0]].every((coord) => { return grid[coord[0]][coord[1]] == player.symbol })) { return [[0, 2], [1, 1], [2, 0]] };
+
     return null; // If nothing else is satisfied 
   };
 
@@ -51,7 +51,7 @@ function createPlayer(symbol) {
 }
 
 // game will switch the turns automatically
-const game = (function() { // this will manage the turns and which player is going
+const game = (function () { // this will manage the turns and which player is going
   const player1 = createPlayer("X");
   const player2 = createPlayer("O");
   let turns = 0;
@@ -64,25 +64,25 @@ const game = (function() { // this will manage the turns and which player is goi
     board.addSymbol(r, c, currentPlayer);
   };
 
-  const checkForWinOrTie = function() {
-      winningCoords = board.findWinFor(currentPlayer);
-      if (winningCoords) {
-        currentPlayer.wins++;
-        winner = currentPlayer;
-        phase = `win`
-      }
+  const checkForWinOrTie = function () {
+    winningCoords = board.findWinFor(currentPlayer);
+    if (winningCoords) {
+      currentPlayer.wins++;
+      winner = currentPlayer;
+      phase = `win`
+    }
 
-      if ((!winningCoords) && turns == 8){
-        phase = 'draw'
-      }
+    if ((!winningCoords) && turns == 8) {
+      phase = 'draw'
+    }
   }
 
-  const getCurrentPlayer = function() {
+  const getCurrentPlayer = function () {
     return currentPlayer;
   }
 
   const takeTurnOn = function (r, c) {
-    if (turns >= 8 || winningCoords) { console.log("game is over")}; 
+    if (turns >= 8 || winningCoords) { console.log("game is over") };
     putDownOn(r, c, currentPlayer);
     checkForWinOrTie();
 
@@ -101,9 +101,9 @@ const game = (function() { // this will manage the turns and which player is goi
     currentPlayer = player1;
   };
 
-  const getPlayer1 = function() { return player1 };
-  const getPlayer2 = function() { return player2 };
-  const getWinner = function() { return winner };
+  const getPlayer1 = function () { return player1 };
+  const getPlayer2 = function () { return player2 };
+  const getWinner = function () { return winner };
 
   return { takeTurnOn, getCurrentPlayer, inPhase, resetGame, getPlayer1, getPlayer2, getWinner }
 })();
@@ -114,12 +114,12 @@ const gameInfoController = (function () {
   const player2NameBox = document.querySelector(".player2-info");
   const messageBox = document.querySelector(".game-message");
 
-  const updateBothPlayers = function(player1, player2) {
+  const updateBothPlayers = function (player1, player2) {
     player2NameBox.textContent = `${player2.wins} - ${player2.name}`
     player1NameBox.textContent = `${player1.name} - ${player1.wins}`;
-   }
+  }
 
-  const setMessage = function(message) {
+  const setMessage = function (message) {
     messageBox.textContent = message;
   }
 
@@ -131,17 +131,17 @@ const game_display = (function () {
   // All initialization stuff
   const coordToSquare = new Map();
 
-  
-  const displayOnSquare = function(coord, player) {
+
+  const displayOnSquare = function (coord, player) {
     let square = coordToSquare.get(coord.toString());
     square.textContent = player.symbol;
   };
-  
+
   const DOMGrid = document.querySelector(".game-grid");
-  
+
   function createDisplay() {
-    for (i = 0; i < 3; i++){
-      for (j = 0; j < 3; j++){
+    for (i = 0; i < 3; i++) {
+      for (j = 0; j < 3; j++) {
         // Make the square node
         let square = document.createElement("div");
         square.classList.add("game-square");
@@ -151,10 +151,10 @@ const game_display = (function () {
         // To the coordinate the squares have their own attributes we can grab from
         // however this can only happens once
         square.addEventListener("click", () => {
-  
+
           let row = square.getAttribute("row");
           let column = square.getAttribute("column");
-          if (game.inPhase() == 'inProgress' ) {
+          if (game.inPhase() == 'inProgress') {
             displayOnSquare([row, column], game.getCurrentPlayer());
             game.takeTurnOn(row, column);
             console.log(game.inPhase());
@@ -167,8 +167,8 @@ const game_display = (function () {
               gameInfoController.setMessage("This game is a draw, no one wins.")
             }
           }
-        }, {once: true});
-  
+        }, { once: true });
+
         // Add it to the appropriate data structures
         coordToSquare.set([i, j].toString(), square);
         DOMGrid.appendChild(square);
@@ -180,20 +180,20 @@ const game_display = (function () {
   }
 
   createDisplay();
-  
+
 
   const resetDisplay = function () {
     DOMGrid.innerHTML = "";
     createDisplay();
   }
-    return { displayOnSquare, resetDisplay };
+  return { displayOnSquare, resetDisplay };
 })();
 
 const resetButton = document.querySelector(".reset-btn")
-resetButton.addEventListener("click", ()=>{
+resetButton.addEventListener("click", () => {
   game_display.resetDisplay();
   board.resetGrid();
   game.resetGame();
-  gameInfoController.setMessage(""); 
-  
+  gameInfoController.setMessage("");
+
 })
